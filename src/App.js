@@ -24,11 +24,13 @@ class App extends Component {
   render(){
       return(
       <form onSubmit={this.addTodo.bind(this)}>
-        <input type="text" ref={ el => this.inputEl = el }/>
+          <h1>Add New To-Do</h1>
+          <input type="text" ref={ el => this.inputEl = el }/>
         <input type="submit"/>
-        <ul>
+          <h2 className="tasks-header">Current Tasks</h2>
+          <ul>
             {
-                this.state.todos.map(todo => <li key={todo.id}>{todo.text}</li> )
+                this.state.todos.map(todo => <li key={todo.id} >{todo.text}</li> )
             }
         </ul>
       </form>

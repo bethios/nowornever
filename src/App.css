@@ -22,3 +22,30 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+form{
+  margin: 30px;
+  width: 50%;
+}
+
+.tasks-header{
+  text-align: center;
+}
+
+ul{
+  list-style: none;
+  padding: 0;
+  border: 1px solid navy;
+
+}
+
+li{
+  padding: 15px;
+  text-align: center;
+  text-transform: capitalize;
+  background-color: ghostwhite;
+}
+
+li:not(:last-child){
+  border-bottom: 1px solid navy;
+}
