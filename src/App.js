@@ -1,21 +1,39 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import fire from './fire'
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
-        </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
-    );
+  constructor(props) {
+      super(props);
+      this.state = { todos: [] };
   }
+  componentWillMount(){
+      let todosRef = fire.database().ref('todos').orderByKey().limitToLast(100);
+      todosRef.on('child_added', snapshot=> {
+          let todo = {text: snapshot.val(), id: snapshot.key};
+          this.setState({todos: [todo].concat(this.state.todos) })
+      })
+  }
+
+  addTodo(e){
+      e.preventDefault();
+      fire.database().ref('todos').push( this.inputEl.value );
+      this.inputEl.value = "";
+  }
+
+  render(){
+      return(
+      <form onSubmit={this.addTodo.bind(this)}>
+        <input type="text" ref={ el => this.inputEl = el }/>
+        <input type="submit"/>
+        <ul>
+            {
+                this.state.todos.map(todo => <li key={todo.id}>{todo.text}</li> )
+            }
+        </ul>
+      </form>
+      );
+  };
 }
 
 export default App;
