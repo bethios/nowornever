@@ -7,6 +7,7 @@ class App extends Component {
       super(props);
       this.state = { todos: [] };
   }
+
   componentWillMount(){
       let todosRef = fire.database().ref('todos').orderByKey().limitToLast(100);
       todosRef.on('child_added', snapshot=> {
@@ -17,8 +18,19 @@ class App extends Component {
 
   addTodo(e){
       e.preventDefault();
-      fire.database().ref('todos').push( this.inputEl.value );
+      let t = Date.now();
+      let d = t + (1000 * 60 * 60 * 24 * 7);
+      fire.database().ref('todos').push({
+          task: this.inputEl.value,
+          due: d,
+          complete: false
+      });
       this.inputEl.value = "";
+  }
+
+  due(dueDate){
+      const days = Math.round((dueDate - Date.now())/(1000 * 60 * 60 * 24 ));
+      return days
   }
 
   render(){
@@ -26,16 +38,19 @@ class App extends Component {
       <form onSubmit={this.addTodo.bind(this)}>
           <h1>Add New To-Do</h1>
           <input type="text" ref={ el => this.inputEl = el }/>
-        <input type="submit"/>
+          <input type="submit"/>
+
           <h2 className="tasks-header">Current Tasks</h2>
           <ul>
             {
-                this.state.todos.map(todo => <li key={todo.id} >{todo.text}</li> )
+                this.state.todos.filter(todo => this.due(todo.text.due) >= 0)
+                    .filter(todo => todo.text.complete !== true)
+                    .map(todo => <li key={todo.id} >{todo.text.task}, Time Remaining: { this.due(todo.text.due) } days </li> )
             }
         </ul>
       </form>
       );
-  };
+  }
 }
 
 export default App;
