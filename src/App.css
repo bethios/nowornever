@@ -24,6 +24,20 @@
   color: white;
 }
 
+.complete{
+  float: right;
+  font-size: 2.5em;
+  cursor: pointer;
+}
+
+.complete:hover{
+  color: cadetblue;
+}
+
+.completed-tasks{
+  text-decoration: line-through;
+}
+
 .add-task-field{
   width: 60%;
   box-shadow: none;
