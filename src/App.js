@@ -7,6 +7,19 @@ class App extends Component {
   constructor(props) {
       super(props);
       this.state = { todos: [] };
+      this.default = todo => this.due(todo.text.due) >= 0 && todo.text.status === 'active';
+      this.current = 'Active ToDos'
+  }
+
+  changeCondition(condition){
+      if(condition === 'active'){
+          this.default = todo => this.due(todo.text.due) >= 0 && todo.text.status === 'active';
+          this.current = "Active ToDos";
+      }else{
+          this.default =  todo => this.due(todo.text.due) < 0 || todo.text.status !== 'active';
+          this.current = 'ToDos History';
+      }
+      this.forceUpdate()
   }
 
   componentWillMount(){
@@ -23,7 +36,7 @@ class App extends Component {
       fire.database().ref('todos').push({
           task: this.inputEl.value,
           due: due,
-          complete: false,
+          status: 'active',
           priority: Number(this.priority.value)
       });
       this.inputEl.value = "";
@@ -33,32 +46,33 @@ class App extends Component {
       return Math.round((dueDate - Date.now())/(1000 * 60 * 60 * 24 ));
   }
 
-  markComplete(todoID){
-      console.log(todoID);
-      fire.database().ref().child('/todos/' + todoID)
-          .update( {complete: true });
-      window.location.reload();
+  dueMessage(dueDate){
+      let days = this.due(dueDate);
+
+      if(days === 0){
+          return "Due Today"
+      }else if(days === 1) {
+          return "Due Tomorrow"
+      }else if(days < 0){
+          return "Past Due"
+      }else{
+          return days + " days left"
+      }
   }
 
-  inactiveTasks(){
-      function handleClick(e){
-          e.preventDefault();
-          console.log('The Link was clicked')
-      }
-
-      return(
-          <a href="#/inactiveTasks" onClick={handleClick}>
-              Inactive Tasks
-          </a>
-      )
-}
+  markComplete(todoID){
+      fire.database().ref().child('/todos/' + todoID)
+          .update( {status: 'complete' });
+      window.location.reload();
+  }
 
   render(){
       return(
       <div className="list">
-
+          <a href='#' className="activeLink"  onClick={() => this.changeCondition('active')}>Active ToDos</a>
+          <a href='#' className="historyLink" onClick={() => this.changeCondition('inactive')}>ToDos History</a>
           <form onSubmit={this.addTodo.bind(this)}>
-              <h1 className="tasks-header">Current Tasks</h1>
+              <h1 className="tasks-header">{this.current}</h1>
               <p className="add-task-header describe">Task Description</p>
               <p className="add-task-header priority">Priority</p>
               <input type="text" placeholder="Add New Task" className="add-task add-task-field" ref={ el => this.inputEl = el }/>
@@ -68,23 +82,15 @@ class App extends Component {
                   <option value="1">Low</option>
               </select>
               <input className="add-task add-task-button" type="submit"/>
-
               <ul>
                 {
-                    this.state.todos.filter(todo => this.due(todo.text.due) >= 0 && todo.text.complete !== true)
-                        .map(todo => <li key={todo.id}>{todo.text.task}, Time Remaining: { this.due(todo.text.due) } days
-                            <TiInputCheckedOutline className='complete' onClick={() => this.markComplete(todo.id)} /></li> )
+                    this.state.todos.filter(this.default)
+                        .map(todo => <li className={todo.text.status +" " + 'daysLeft' + this.due(todo.text.due)} key={todo.id}>
+                            <p className="taskDesc">{todo.text.task}</p> <span>{ this.dueMessage(todo.text.due) }</span>
+                            <TiInputCheckedOutline className='checkbox' onClick={() => this.markComplete(todo.id)} /></li> )
                 }
               </ul>
           </form>
-            <h2 className="tasks-header">Completed Tasks</h2>
-            <ul className="completed-tasks">
-              {
-                  this.state.todos.filter(todo => this.due(todo.text.due) <= 0 || todo.text.complete === true)
-                      .map(todo => <li key={todo.id}>{todo.text.task}</li> )
-              }
-            </ul>
-
       </div>
       );
   }
